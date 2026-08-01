@@ -2,7 +2,7 @@
   "name": "file-marks",
   "displayName": "File Marks",
   "description": "Mark files and folders in the Explorer with a colour, a badge and a hover note. Stored globally, so it works in every project.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "T0ks1k",
   "author": {
     "name": "T0ks1k"
@@ -15,12 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/T0ks1k/vscode-file-marks.git"
+    "url": "https://github.com/T0ks1k24/vscode-file-marks.git"
   },
   "bugs": {
-    "url": "https://github.com/T0ks1k/vscode-file-marks/issues"
+    "url": "https://github.com/T0ks1k24/vscode-file-marks/issues"
   },
-  "homepage": "https://github.com/T0ks1k/vscode-file-marks#readme",
+  "homepage": "https://github.com/T0ks1k24/vscode-file-marks#readme",
   "keywords": [
     "explorer",
     "file color",

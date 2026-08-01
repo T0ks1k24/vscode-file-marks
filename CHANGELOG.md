@@ -3,6 +3,12 @@
 All notable changes to File Marks are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.1]
+
+### Fixed
+- The repository, issues and homepage links pointed at a GitHub account that does not exist, which
+  also left the screenshot in this page broken.
+
 ## [1.0.0]
 
 First release.
