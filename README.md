@@ -3,7 +3,7 @@
 Colour your files and folders in the VS Code Explorer. Right-click → **Mark** — pick a colour, a
 tag and a note. Marks are stored globally, so they follow you into every project.
 
-![Marked folders in the Explorer](https://raw.githubusercontent.com/T0ks1k/vscode-file-marks/main/images/screenshot.png)
+![Marked folders in the Explorer](images/screenshot.png)
 
 ## Why
 
