@@ -29,6 +29,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: file-marks-vsix
-          path: file-marks.vsix
+          name: vscode-file-marks-vsix
+          path: vscode-file-marks.vsix
           if-no-files-found: error
