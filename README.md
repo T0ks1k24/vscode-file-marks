@@ -3,9 +3,9 @@
 Colour your files and folders in the VS Code Explorer. Right-click → **Mark** — pick a colour, a
 tag and a note. Marks are stored globally, so they follow you into every project.
 
-[![Marketplace](https://img.shields.io/visual-studio-marketplace/v/T0ks1k24.vscode-file-marks?label=marketplace&color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.vscode-file-marks)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/T0ks1k24.vscode-file-marks?color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.vscode-file-marks)
-[![Rating](https://img.shields.io/visual-studio-marketplace/stars/T0ks1k24.vscode-file-marks?color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.vscode-file-marks&ssr=false#review-details)
+[![Marketplace](https://img.shields.io/visual-studio-marketplace/v/T0ks1k24.file-marks?label=marketplace&color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.file-marks)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/T0ks1k24.file-marks?color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.file-marks)
+[![Rating](https://img.shields.io/visual-studio-marketplace/stars/T0ks1k24.file-marks?color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.file-marks&ssr=false#review-details)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 
 ![Marked folders in the Explorer](images/screenshot.png)
@@ -22,10 +22,10 @@ tag and a note. Marks are stored globally, so they follow you into every project
 From the Extensions view (`Ctrl+Shift+X`) search for **File Marks**, or:
 
 ```
-ext install T0ks1k24.vscode-file-marks
+ext install T0ks1k24.file-marks
 ```
 
-Also on [Open VSX](https://open-vsx.org/extension/T0ks1k24/vscode-file-marks) for VSCodium, Cursor and
+Also on [Open VSX](https://open-vsx.org/extension/T0ks1k24/file-marks) for VSCodium, Cursor and
 Gitpod.
 
 ## Use it
@@ -103,7 +103,7 @@ window opens with it loaded.
 ```bash
 npm install
 npm run check      # syntax check
-npm run package    # build vscode-file-marks.vsix
+npm run package    # build file-marks.vsix
 ```
 
 Pushing a commit to `main` with a new `version` in `package.json` tags it and publishes the

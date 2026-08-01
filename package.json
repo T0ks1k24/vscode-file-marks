@@ -1,5 +1,5 @@
 {
-  "name": "vscode-file-marks",
+  "name": "file-marks",
   "displayName": "File Marks",
   "description": "Mark files and folders in the Explorer with a colour, a badge and a hover note. Stored globally, so it works in every project.",
   "version": "1.0.1",
@@ -59,9 +59,9 @@
   ],
   "scripts": {
     "check": "for f in extension.js src/*.js src/commands/*.js; do node --check \"$f\" || exit 1; done",
-    "package": "vsce package --out vscode-file-marks.vsix",
-    "publish:marketplace": "vsce publish --packagePath vscode-file-marks.vsix",
-    "publish:openvsx": "ovsx publish vscode-file-marks.vsix"
+    "package": "vsce package --out file-marks.vsix",
+    "publish:marketplace": "vsce publish --packagePath file-marks.vsix",
+    "publish:openvsx": "ovsx publish file-marks.vsix"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
