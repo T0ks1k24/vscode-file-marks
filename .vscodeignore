@@ -1,0 +1,9 @@
+.vscode/**
+.github/**
+node_modules/**
+.gitignore
+.vscodeignore
+PUBLISHING.md
+jsconfig.json
+**/*.vsix
+**/.DS_Store

@@ -1,0 +1,278 @@
+{
+  "name": "file-marks",
+  "displayName": "File Marks",
+  "description": "Mark files and folders in the Explorer with a colour, a badge and a hover note. Stored globally, so it works in every project.",
+  "version": "1.0.0",
+  "publisher": "T0ks1k",
+  "author": {
+    "name": "T0ks1k"
+  },
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1f1f1f",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/T0ks1k/vscode-file-marks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/T0ks1k/vscode-file-marks/issues"
+  },
+  "homepage": "https://github.com/T0ks1k/vscode-file-marks#readme",
+  "keywords": [
+    "explorer",
+    "file color",
+    "bookmark",
+    "badge",
+    "highlight",
+    "tag"
+  ],
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "Marks are stored in the extension's own global storage and never execute workspace code."
+    },
+    "virtualWorkspaces": true
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "package": "vsce package",
+    "publish:marketplace": "vsce publish",
+    "publish:openvsx": "ovsx publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^3.2.0"
+  },
+  "contributes": {
+    "colors": [
+      {
+        "id": "fileMarks.red",
+        "description": "File Marks: red",
+        "defaults": { "dark": "#f14c4c", "light": "#e51400", "highContrast": "#f14c4c" }
+      },
+      {
+        "id": "fileMarks.orange",
+        "description": "File Marks: orange",
+        "defaults": { "dark": "#ff9f1c", "light": "#d97706", "highContrast": "#ff9f1c" }
+      },
+      {
+        "id": "fileMarks.yellow",
+        "description": "File Marks: yellow",
+        "defaults": { "dark": "#e2c08d", "light": "#a67f00", "highContrast": "#e2c08d" }
+      },
+      {
+        "id": "fileMarks.green",
+        "description": "File Marks: green",
+        "defaults": { "dark": "#4ec94e", "light": "#108010", "highContrast": "#4ec94e" }
+      },
+      {
+        "id": "fileMarks.teal",
+        "description": "File Marks: teal",
+        "defaults": { "dark": "#2dd4bf", "light": "#0d9488", "highContrast": "#2dd4bf" }
+      },
+      {
+        "id": "fileMarks.blue",
+        "description": "File Marks: blue",
+        "defaults": { "dark": "#3794ff", "light": "#0066bf", "highContrast": "#3794ff" }
+      },
+      {
+        "id": "fileMarks.purple",
+        "description": "File Marks: purple",
+        "defaults": { "dark": "#b180d7", "light": "#7c3aed", "highContrast": "#b180d7" }
+      },
+      {
+        "id": "fileMarks.pink",
+        "description": "File Marks: pink",
+        "defaults": { "dark": "#f472b6", "light": "#db2777", "highContrast": "#f472b6" }
+      },
+      {
+        "id": "fileMarks.grey",
+        "description": "File Marks: grey",
+        "defaults": { "dark": "#8c8c8c", "light": "#8c8c8c", "highContrast": "#8c8c8c" }
+      },
+      {
+        "id": "fileMarks.white",
+        "description": "File Marks: contrast",
+        "defaults": { "dark": "#ffffff", "light": "#000000", "highContrast": "#ffffff" }
+      }
+    ],
+    "commands": [
+      {
+        "command": "fileMarks.applyPreset",
+        "title": "Mark: Quick Preset…",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.setColor",
+        "title": "Mark: Colour…",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.setTag",
+        "title": "Mark: Tag / Badge…",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.setDescription",
+        "title": "Mark: Description (hover note)…",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.clear",
+        "title": "Mark: Remove",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.list",
+        "title": "List All Marks",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.clearAll",
+        "title": "Delete All Marks",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.prune",
+        "title": "Remove Marks of Missing Files",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.export",
+        "title": "Export Marks to a File…",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.import",
+        "title": "Import Marks from a File…",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.openStorage",
+        "title": "Open the Marks Storage File",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.bringToFront",
+        "title": "Give Marks Priority Over Git Colours",
+        "category": "File Marks"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "fileMarks.submenu",
+        "label": "Mark",
+        "icon": "$(tag)"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "submenu": "fileMarks.submenu",
+          "group": "2_workspace@100"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "submenu": "fileMarks.submenu",
+          "group": "2_workspace@100"
+        }
+      ],
+      "fileMarks.submenu": [
+        { "command": "fileMarks.applyPreset", "group": "1_apply@1" },
+        { "command": "fileMarks.setColor", "group": "2_edit@1" },
+        { "command": "fileMarks.setTag", "group": "2_edit@2" },
+        { "command": "fileMarks.setDescription", "group": "2_edit@3" },
+        { "command": "fileMarks.clear", "group": "3_clear@1" },
+        { "command": "fileMarks.list", "group": "4_misc@1" }
+      ]
+    },
+    "configuration": {
+      "title": "File Marks",
+      "properties": {
+        "fileMarks.propagateToParents": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Colour a folder when something inside it is marked, so a mark buried deep in the tree is visible without expanding every folder.\n\nOff by default: with many marks the Explorer turns into a wall of colour."
+        },
+        "fileMarks.showTagInTooltip": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Put the tag into the tooltip that appears when you hover a marked file, in front of its note — `🚧 — waiting for the API`.\n\nTurn this off to see only the note."
+        },
+        "fileMarks.priorityOverGit": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Keep mark colours in front of the colours the Git extension paints on changed files.\n\nVS Code shows the colour of whichever extension registered last, and Git registers after us, so File Marks re-registers itself a moment after startup and whenever a repository opens. Turn this off if you would rather see the git status colour on a file that is also marked."
+        },
+        "fileMarks.badgeSuggestions": {
+          "type": "array",
+          "default": [],
+          "items": { "type": "string", "maxLength": 32 },
+          "markdownDescription": "The tags offered in the tag picker, replacing the built-in list of emoji.\n\nEach entry is **1–2 characters** — one emoji counts as one. Leave the list empty to keep the built-in suggestions. You can always type a tag by hand instead of picking one.\n\nExample: `[\"🔥\", \"⚡\", \"v2\", \"!!\"]`"
+        },
+        "fileMarks.presets": {
+          "type": "array",
+          "default": [
+            { "label": "TODO", "badge": "📌", "color": "fileMarks.yellow", "description": "Needs work" },
+            { "label": "Important", "badge": "⭐", "color": "fileMarks.orange", "description": "Important file" },
+            { "label": "In progress", "badge": "🚧", "color": "fileMarks.blue", "description": "Being worked on" },
+            { "label": "Done", "badge": "✅", "color": "fileMarks.green", "description": "Checked and finished" },
+            { "label": "Broken", "badge": "💥", "color": "fileMarks.red", "description": "Bug / does not work" },
+            { "label": "Do not touch", "badge": "🚫", "color": "fileMarks.purple", "description": "Leave unchanged" },
+            { "label": "Question", "badge": "❓", "color": "fileMarks.teal", "description": "Needs investigation" },
+            { "label": "Archive", "badge": "🗄", "color": "fileMarks.grey", "description": "Old / unused" }
+          ],
+          "markdownDescription": "The ready-made marks offered by **Mark: Quick Preset…**, which sets colour, tag and note in one click.\n\nReplace this list with your own workflow. Only `label` is required — leave out `badge`, `color` or `description` and that part of the mark stays empty.\n\n```json\n{ \"label\": \"Review\", \"badge\": \"👀\", \"color\": \"fileMarks.teal\", \"description\": \"Waiting for review\" }\n```",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "The name shown in the preset list."
+              },
+              "badge": {
+                "type": "string",
+                "maxLength": 32,
+                "description": "The tag the preset applies: 1-2 characters, one emoji counts as one."
+              },
+              "color": {
+                "type": "string",
+                "description": "The colour the preset gives the file name.",
+                "enum": [
+                  "fileMarks.red",
+                  "fileMarks.orange",
+                  "fileMarks.yellow",
+                  "fileMarks.green",
+                  "fileMarks.teal",
+                  "fileMarks.blue",
+                  "fileMarks.purple",
+                  "fileMarks.pink",
+                  "fileMarks.grey",
+                  "fileMarks.white"
+                ]
+              },
+              "description": {
+                "type": "string",
+                "description": "The note the preset writes, shown when hovering the file."
+              }
+            },
+            "required": ["label"]
+          }
+        }
+      }
+    }
+  }
+}
