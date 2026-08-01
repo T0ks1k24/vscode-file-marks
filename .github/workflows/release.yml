@@ -71,9 +71,15 @@ jobs:
         if: steps.version.outputs.release == 'true' && env.VSCE_PAT != ''
         run: npm run publish:marketplace
 
+      # Open VSX is a bonus, so a failure here does not hold back the tag and
+      # the GitHub release. The namespace has to exist before the first publish
+      # and creating it again is an error, hence the `|| true`.
       - name: Publish to Open VSX
         if: steps.version.outputs.release == 'true' && env.OVSX_PAT != ''
-        run: npm run publish:openvsx
+        continue-on-error: true
+        run: |
+          npx ovsx create-namespace "$(node -p "require('./package.json').publisher")" || true
+          npm run publish:openvsx
 
       - name: Tag the commit
         if: steps.version.outputs.release == 'true'
