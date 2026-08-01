@@ -76,5 +76,5 @@ no runtime dependencies.
 
 ## Licence
 
-MIT © T0ks1k · [Source](https://github.com/T0ks1k24/vscode-file-marks) ·
+MIT © T0ks1k24 · [Source](https://github.com/T0ks1k24/vscode-file-marks) ·
 [Changelog](CHANGELOG.md)
