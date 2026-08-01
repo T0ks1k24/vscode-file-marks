@@ -3,7 +3,7 @@
   "displayName": "File Marks",
   "description": "Mark files and folders in the Explorer with a colour, a badge and a hover note. Stored globally, so it works in every project.",
   "version": "1.0.1",
-  "publisher": "T0ks1k",
+  "publisher": "T0ks1k24",
   "author": {
     "name": "T0ks1k24"
   },
@@ -24,17 +24,28 @@
   "keywords": [
     "explorer",
     "file color",
+    "file colour",
+    "colorize",
     "bookmark",
+    "favorites",
     "badge",
     "highlight",
-    "tag"
+    "tag",
+    "label",
+    "todo",
+    "sidebar",
+    "file tree",
+    "navigation",
+    "productivity"
   ],
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
+    "Visualization",
     "Other"
   ],
+  "pricing": "Free",
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": true,
@@ -47,13 +58,15 @@
     "onStartupFinished"
   ],
   "scripts": {
-    "package": "vsce package",
-    "publish:marketplace": "vsce publish",
-    "publish:openvsx": "ovsx publish"
+    "check": "for f in extension.js src/*.js src/commands/*.js; do node --check \"$f\" || exit 1; done",
+    "package": "vsce package --out file-marks.vsix",
+    "publish:marketplace": "vsce publish --packagePath file-marks.vsix",
+    "publish:openvsx": "ovsx publish file-marks.vsix"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
-    "@vscode/vsce": "^3.2.0"
+    "@vscode/vsce": "^3.2.0",
+    "ovsx": "^0.10.1"
   },
   "contributes": {
     "colors": [

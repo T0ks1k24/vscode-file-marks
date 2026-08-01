@@ -3,6 +3,11 @@
 Colour your files and folders in the VS Code Explorer. Right-click → **Mark** — pick a colour, a
 tag and a note. Marks are stored globally, so they follow you into every project.
 
+[![Marketplace](https://img.shields.io/visual-studio-marketplace/v/T0ks1k24.file-marks?label=marketplace&color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.file-marks)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/T0ks1k24.file-marks?color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.file-marks)
+[![Rating](https://img.shields.io/visual-studio-marketplace/stars/T0ks1k24.file-marks?color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.file-marks&ssr=false#review-details)
+[![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
+
 ![Marked folders in the Explorer](images/screenshot.png)
 
 ## Why
@@ -10,6 +15,18 @@ tag and a note. Marks are stored globally, so they follow you into every project
 - Find the files you actually work in, in a tree full of everything else.
 - No config files in your repo, nothing committed by accident.
 - Works on a multi-selection, on folders, and on remote / WSL / container workspaces.
+- No runtime dependencies, no network access, no telemetry.
+
+## Install
+
+From the Extensions view (`Ctrl+Shift+X`) search for **File Marks**, or:
+
+```
+ext install T0ks1k24.file-marks
+```
+
+Also on [Open VSX](https://open-vsx.org/extension/T0ks1k24/file-marks) for VSCodium, Cursor and
+Gitpod.
 
 ## Use it
 
@@ -25,6 +42,10 @@ Right-click a file or folder in the Explorer (or an editor tab) → **Mark**:
 | **List All Marks** | jump to any marked file |
 
 Everything is also in the Command Palette under `File Marks:`.
+
+The eight presets that ship with it — 📌 TODO, ⭐ Important, 🚧 In progress, ✅ Done, 💥 Broken,
+🚫 Do not touch, ❓ Question, 🗄 Archive — are only a starting point. Replace them with your own
+workflow through `fileMarks.presets`.
 
 ## Settings
 
@@ -71,8 +92,22 @@ always win — turn them off if marks must be unconditionally visible:
 editor do not — use **File Marks: Remove Marks of Missing Files** to clean up.
 
 **Backup.** *Export / Import Marks* moves everything to another machine. Marks live in one JSON
-file in the extension's global storage; nothing is written into your projects, no network access,
-no runtime dependencies.
+file in the extension's global storage; nothing is written into your projects.
+
+## Contributing
+
+Bugs and ideas are welcome in the [issues](https://github.com/T0ks1k24/vscode-file-marks/issues).
+The extension is plain JavaScript with no build step: clone it, press `F5`, and a second VS Code
+window opens with it loaded.
+
+```bash
+npm install
+npm run check      # syntax check
+npm run package    # build file-marks.vsix
+```
+
+Pushing a commit to `main` with a new `version` in `package.json` tags it and publishes the
+release automatically — see [.github/workflows/release.yml](.github/workflows/release.yml).
 
 ## Licence
 

@@ -1,0 +1,38 @@
+name: Bug report
+description: Something does not work the way the readme says it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+      description: And what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      placeholder: |
+        1. Right-click a folder → Mark → …
+        2. …
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: VS Code and File Marks version
+      placeholder: VS Code 1.99.0, File Marks 1.0.1
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Local, WSL, SSH remote, dev container, web?
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: Before you file
+      options:
+        - label: The colour is not simply being overridden by git or by an error marker — the readme's "Git colours" section covers that.

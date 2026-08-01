@@ -7,3 +7,5 @@ PUBLISHING.md
 jsconfig.json
 **/*.vsix
 **/.DS_Store
+package-lock.json
+release-notes.md
