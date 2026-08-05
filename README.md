@@ -47,6 +47,48 @@ The eight presets that ship with it — 📌 TODO, ⭐ Important, 🚧 In progre
 🚫 Do not touch, ❓ Question, 🗄 Archive — are only a starting point. Replace them with your own
 workflow through `fileMarks.presets`.
 
+## Keybindings
+
+One press. They act on the file open in the editor, and on the Explorer selection while the
+Explorer has focus.
+
+| | |
+|---|---|
+| `Ctrl+Alt+1` … `Ctrl+Alt+5` | apply preset 1–5 — colour, tag and note in one go |
+| `Ctrl+Alt+0` | remove the mark |
+| `Ctrl+Alt+M` | the preset picker — everything else is in there |
+| `Ctrl+Alt+C` | colour… |
+| `Ctrl+Alt+L` | list all marks |
+
+Press the same shortcut again and the mark comes off, so `Ctrl+Alt+1` is a toggle.
+
+The shortcuts are bound to key *positions* (`[Digit1]`, `[KeyM]`), not to the letters printed on
+them, so they keep working on a Ukrainian, Russian, Greek or any other non-Latin layout — where a
+plain `alt+m` binding does nothing at all, because no key on that layout produces an `m`.
+
+### Bind your own
+
+`fileMarks.apply` takes arguments, so any mark can go on a key of your own in `keybindings.json`:
+
+```jsonc
+{
+  "key": "ctrl+alt+r",
+  "command": "fileMarks.apply",
+  "args": { "color": "red", "badge": "💥", "description": "Broken" }
+}
+```
+
+| Argument | Accepts |
+|---|---|
+| `color` | `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`, `grey`, `contrast`, any theme colour id, or `null` to clear it |
+| `badge` | 1–2 characters, or `null` |
+| `description` | any text, or `null` |
+| `preset` | a position in `fileMarks.presets` (`1`) or its label (`"TODO"`) |
+| `toggle` | `false` to keep writing the mark instead of taking it off on the second press |
+| `target` | `"explorer"` marks the Explorer selection instead of the file in the editor |
+
+With no `args` at all the key opens the preset picker.
+
 ## Settings
 
 | Setting | Default | What it does |
@@ -56,6 +98,7 @@ workflow through `fileMarks.presets`.
 | `fileMarks.propagateToParents` | `false` | colour a folder when something inside it is marked |
 | `fileMarks.showTagInTooltip` | `true` | put the tag in front of the note in the hover text |
 | `fileMarks.priorityOverGit` | `true` | keep mark colours in front of git status colours |
+| `fileMarks.explorerKeybindings` | `true` | let the shortcuts mark the Explorer selection |
 
 Change the colours to your own:
 
@@ -87,6 +130,11 @@ always win — turn them off if marks must be unconditionally visible:
 "git.decorations.enabled": false,
 "problems.decorations.enabled": false
 ```
+
+**The Explorer selection behind a keybinding.** VS Code exposes no API for what is selected in the
+Explorer. The shortcuts read it through the built-in *Copy Path* command and put the clipboard back
+immediately afterwards — set `fileMarks.explorerKeybindings` to `false` and they only ever mark the
+file open in the editor, leaving the clipboard alone. The context menu never needs any of this.
 
 **Renames** made inside VS Code carry the mark along, folders included. Changes made outside the
 editor do not — use **File Marks: Remove Marks of Missing Files** to clean up.

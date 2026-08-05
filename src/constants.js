@@ -18,6 +18,13 @@ const COLORS = [
   { id: 'fileMarks.white', label: 'Contrast' },
 ];
 
+/**
+ * The shape of a theme colour id. Keybindings and the storage file are both
+ * user written, so a colour is only ever handed to the theme when it looks like
+ * an id — our own ten are not the only ones a mark may point at.
+ */
+const COLOR_ID = /^[A-Za-z][A-Za-z0-9]*(\.[A-Za-z0-9]+)+$/;
+
 /** Fallback badge suggestions when `fileMarks.badgeSuggestions` is empty. */
 const BADGE_SUGGESTIONS = [
   '📌', '⭐', '🚧', '✅', '💥', '🚫', '❓', '🗄', '🔥', '🐞',
@@ -34,6 +41,7 @@ const LEGACY_STORAGE_DIRS = ['local.file-marks'];
 
 module.exports = {
   COLORS,
+  COLOR_ID,
   BADGE_SUGGESTIONS,
   MAX_DESCRIPTION_LENGTH,
   STORAGE_FILE,

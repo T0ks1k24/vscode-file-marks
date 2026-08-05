@@ -4,6 +4,7 @@ const vscode = require('vscode');
 
 const { COLORS, BADGE_SUGGESTIONS } = require('../constants');
 const { sanitizeTag } = require('../badge');
+const { presetPatch, buildPatch, alreadyApplied, clearingPatch } = require('../markArgs');
 const { describeTargets, withTargets } = require('../targets');
 
 /** A fresh instance each time — QuickPick keeps item identity, so never share one. */
@@ -54,18 +55,39 @@ function registerMarkCommands(register, store) {
       if (!picked) return;
 
       if (picked.action) {
-        await vscode.commands.executeCommand(picked.action, uri, uris);
+        // The resolved targets are passed on, not the original arguments: with
+        // the picker open the Explorer no longer has focus, so asking for its
+        // selection a second time would answer with the active editor instead.
+        await vscode.commands.executeCommand(picked.action, targets[0], targets);
         return;
       }
 
-      const preset = picked.preset;
-      await store.update(targets, {
-        color: preset.color || null,
-        tag: sanitizeTag(preset.badge) || null,
-        description: preset.description || null,
-      });
+      await store.update(targets, presetPatch(picked.preset));
     })
   );
+
+  // --- one command for every keybinding ------------------------------------
+  // Bound to a key, `args` arrives here as the first argument; from a menu that
+  // slot holds the uri instead, and then there is nothing to apply but the
+  // picker. Everything a mark is made of can be set, cleared or combined, so a
+  // keybinding never needs more than this one command.
+  register('fileMarks.apply', (uri, uris) => {
+    const options = !(uri instanceof vscode.Uri) && uri && typeof uri === 'object' ? uri : {};
+
+    const { patch, error } = buildPatch(options, getPresets());
+    if (error) {
+      vscode.window.showWarningMessage(`File Marks: ${error}.`);
+      return undefined;
+    }
+    if (!patch) return vscode.commands.executeCommand('fileMarks.applyPreset', uri, uris);
+
+    return withTargets(uri, uris, async (targets) => {
+      // Pressing the same key again takes the mark back off, unless the binding
+      // says otherwise.
+      const undo = options.toggle !== false && alreadyApplied(store, targets, patch);
+      await store.update(targets, undo ? clearingPatch(patch) : patch);
+    });
+  });
 
   // --- colour --------------------------------------------------------------
   register('fileMarks.setColor', (uri, uris) =>

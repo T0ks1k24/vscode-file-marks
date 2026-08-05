@@ -2,7 +2,7 @@
   "name": "file-marks-explorer",
   "displayName": "File Marks Explorer",
   "description": "Mark files and folders in the Explorer with a colour, a badge and a hover note. Stored globally, so it works in every project.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "publisher": "T0ks1k24",
   "author": {
     "name": "T0ks1k24"
@@ -128,6 +128,11 @@
         "category": "File Marks"
       },
       {
+        "command": "fileMarks.apply",
+        "title": "Mark: Apply",
+        "category": "File Marks"
+      },
+      {
         "command": "fileMarks.setColor",
         "title": "Mark: Colour…",
         "category": "File Marks"
@@ -183,6 +188,106 @@
         "category": "File Marks"
       }
     ],
+    "keybindings": [
+      {
+        "key": "ctrl+alt+[Digit1]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 1},
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[Digit1]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 1, "target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[Digit2]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 2},
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[Digit2]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 2, "target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[Digit3]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 3},
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[Digit3]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 3, "target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[Digit4]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 4},
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[Digit4]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 4, "target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[Digit5]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 5},
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[Digit5]",
+        "command": "fileMarks.apply",
+        "args": {"preset": 5, "target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[Digit0]",
+        "command": "fileMarks.clear",
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[Digit0]",
+        "command": "fileMarks.clear",
+        "args": {"target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[KeyM]",
+        "command": "fileMarks.apply",
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[KeyM]",
+        "command": "fileMarks.apply",
+        "args": {"target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[KeyC]",
+        "command": "fileMarks.setColor",
+        "when": "editorTextFocus"
+      },
+      {
+        "key": "ctrl+alt+[KeyC]",
+        "command": "fileMarks.setColor",
+        "args": {"target": "explorer"},
+        "when": "filesExplorerFocus && config.fileMarks.explorerKeybindings"
+      },
+      {
+        "key": "ctrl+alt+[KeyL]",
+        "command": "fileMarks.list",
+        "when": "!terminalFocus"
+      }
+    ],
     "submenus": [
       {
         "id": "fileMarks.submenu",
@@ -191,6 +296,12 @@
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "fileMarks.apply",
+          "when": "false"
+        }
+      ],
       "explorer/context": [
         {
           "submenu": "fileMarks.submenu",
@@ -229,6 +340,11 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "Keep mark colours in front of the colours the Git extension paints on changed files.\n\nVS Code shows the colour of whichever extension registered last, and Git registers after us, so File Marks re-registers itself a moment after startup and whenever a repository opens. Turn this off if you would rather see the git status colour on a file that is also marked."
+        },
+        "fileMarks.explorerKeybindings": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Let the `alt+m` keybindings work on the Explorer selection while the Explorer has focus. With this off they only ever mark the file open in the editor.\n\nVS Code exposes no API for the Explorer selection, so it is read through the built-in **Copy Path** command and the clipboard is put back immediately. Turn this off if nothing may touch your clipboard."
         },
         "fileMarks.badgeSuggestions": {
           "type": "array",

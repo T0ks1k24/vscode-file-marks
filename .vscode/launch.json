@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // A throwaway profile: its own global storage, so the marks you make while
+      // testing never touch the ones your everyday editor has.
+      "name": "Extension (clean profile)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--user-data-dir=${userHome}/.cache/file-marks-dev",
+        "${workspaceFolder}"
+      ]
+    },
+    {
+      // Your real profile — it shows the marks you already have and writes to
+      // them, which is what you want when reproducing something.
+      "name": "Extension (my profile)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}", "${workspaceFolder}"]
+    }
+  ]
+}

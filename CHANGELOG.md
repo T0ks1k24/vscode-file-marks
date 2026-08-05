@@ -3,6 +3,25 @@
 All notable changes to File Marks are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0]
+
+### Added
+- **Keybindings.** `Ctrl+Alt+1` … `Ctrl+Alt+5` apply the first five presets, `Ctrl+Alt+0` removes the
+  mark, `Ctrl+Alt+M` opens the preset picker, `Ctrl+Alt+C` the colours and `Ctrl+Alt+L` the list of
+  marks. They work on the file open in the editor and on the Explorer selection.
+- The shortcuts are bound to key positions (`[Digit1]`, `[KeyM]`) rather than to letters, so they
+  also work on layouts that have no Latin letters — a `alt+m` binding cannot even be resolved while
+  a Ukrainian or Russian layout is active.
+- **`fileMarks.apply`** takes arguments, so any mark fits on a key of your own — `color` (short name,
+  theme colour id or `null`), `badge`, `description`, `preset` (position or label), `toggle` and
+  `target`. Combine them freely; leave `args` out and the key opens the picker.
+- Pressing a shortcut a second time takes the mark back off. `"toggle": false` in the arguments
+  keeps it on.
+- `fileMarks.explorerKeybindings` (`true`) decides whether the shortcuts may act on the Explorer
+  selection. VS Code exposes no API for it, so it is read through the built-in *Copy Path* command
+  with the clipboard restored right after; turning the setting off keeps the shortcuts to the editor
+  and never touches the clipboard.
+
 ## [1.0.1]
 
 ### Fixed

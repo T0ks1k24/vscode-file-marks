@@ -4,13 +4,10 @@ const vscode = require('vscode');
 const path = require('path');
 
 const { sanitizeTag, sanitizeDescription } = require('./badge');
-const { STORAGE_FILE, LEGACY_STORAGE_DIRS } = require('./constants');
+const { COLOR_ID, STORAGE_FILE, LEGACY_STORAGE_DIRS } = require('./constants');
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-
-/** Colour ids we hand to the theme; anything else in the file is dropped. */
-const COLOR_ID = /^[A-Za-z][A-Za-z0-9]*(\.[A-Za-z0-9]+)+$/;
 
 /** Keys that would walk the prototype chain instead of being stored as data. */
 const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
