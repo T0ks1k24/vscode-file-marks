@@ -31,6 +31,12 @@ const BADGE_SUGGESTIONS = [
   '💡', '🔒', '👀', '⚡', '🧪', '📝', '♻', '🎯', '1', '2',
 ];
 
+/**
+ * No file has more lines than this, so a larger line number in the storage file
+ * is junk rather than a mark waiting for a very long file.
+ */
+const MAX_LINE = 2000000;
+
 /** Hover notes are trimmed to this, so a broken file cannot produce a huge tooltip. */
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -42,6 +48,7 @@ const LEGACY_STORAGE_DIRS = ['local.file-marks'];
 module.exports = {
   COLORS,
   COLOR_ID,
+  MAX_LINE,
   BADGE_SUGGESTIONS,
   MAX_DESCRIPTION_LENGTH,
   STORAGE_FILE,

@@ -8,7 +8,7 @@ tag and a note. Marks are stored globally, so they follow you into every project
 [![Rating](https://img.shields.io/visual-studio-marketplace/stars/T0ks1k24.file-marks-explorer?color=1f9cf0)](https://marketplace.visualstudio.com/items?itemName=T0ks1k24.file-marks-explorer&ssr=false#review-details)
 [![Licence](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 
-![Marked folders in the Explorer](images/screenshot.png)
+![Files and folders marked in the Explorer](images/view_mark_file.png)
 
 ## Why
 
@@ -46,6 +46,36 @@ Everything is also in the Command Palette under `File Marks:`.
 The eight presets that ship with it — 📌 TODO, ⭐ Important, 🚧 In progress, ✅ Done, 💥 Broken,
 🚫 Do not touch, ❓ Question, 🗄 Archive — are only a starting point. Replace them with your own
 workflow through `fileMarks.presets`.
+
+## Lines, not just files
+
+Select some code, right-click the **line numbers** → **Mark Lines** → **Colour…**:
+
+![Mark Lines in the line-number context menu](images/mark_for_line.png)
+
+The lines get a stripe in that colour where the numbers end, and a tick in the overview ruler so you
+can find them from anywhere in the file. The code itself is left alone — nothing is highlighted or
+recoloured:
+
+![Marked lines, striped beside the line numbers](images/view_mark_line.png)
+
+| | |
+|---|---|
+| **Colour…** | paint the selected lines |
+| **Remove Mark** | take the stripe off them |
+| **Remove Every Mark in This File** | clear the file in one go |
+
+Right-clicking a line number inside a selection marks the whole selection; right-clicking outside one
+marks that single line. All three are in the Command Palette too, where they work on whatever is
+selected.
+
+Marks follow the text while you edit: everything below an insertion or a deletion moves with it, and
+a mark on a line you delete goes away with the line. Edits made outside VS Code are not seen — marks
+are stored by line number, not by content — so a file rewritten by another tool can end up with its
+stripes a few lines off.
+
+Clearing the mark of a *file* leaves the lines inside it alone; they are separate work. **Delete All
+Marks** removes both.
 
 ## Keybindings
 
@@ -99,6 +129,7 @@ With no `args` at all the key opens the preset picker.
 | `fileMarks.showTagInTooltip` | `true` | put the tag in front of the note in the hover text |
 | `fileMarks.priorityOverGit` | `true` | keep mark colours in front of git status colours |
 | `fileMarks.explorerKeybindings` | `true` | let the shortcuts mark the Explorer selection |
+| `fileMarks.lineMarkWidth` | `3` | width in pixels of the stripe beside a marked line |
 
 Change the colours to your own:
 
@@ -144,18 +175,10 @@ file in the extension's global storage; nothing is written into your projects.
 
 ## Contributing
 
-Bugs and ideas are welcome in the [issues](https://github.com/T0ks1k24/vscode-file-marks/issues).
-The extension is plain JavaScript with no build step: clone it, press `F5`, and a second VS Code
-window opens with it loaded.
-
-```bash
-npm install
-npm run check      # syntax check
-npm run package    # build file-marks-explorer.vsix
-```
-
-Pushing a commit to `main` with a new `version` in `package.json` tags it and publishes the
-release automatically — see [.github/workflows/release.yml](.github/workflows/release.yml).
+Bugs and ideas are welcome in the [issues](https://github.com/T0ks1k24/vscode-file-marks/issues),
+pull requests just as much. Plain JavaScript, no build step: clone it, `npm install`, press `F5`.
+[CONTRIBUTING.md](CONTRIBUTING.md) has the rest — where things live, what the code expects of
+itself, and how a release is cut.
 
 ## Licence
 

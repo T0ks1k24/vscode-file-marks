@@ -2,7 +2,7 @@
   "name": "file-marks-explorer",
   "displayName": "File Marks Explorer",
   "description": "Mark files and folders in the Explorer with a colour, a badge and a hover note. Stored globally, so it works in every project.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "T0ks1k24",
   "author": {
     "name": "T0ks1k24"
@@ -153,6 +153,21 @@
         "category": "File Marks"
       },
       {
+        "command": "fileMarks.setLineColor",
+        "title": "Lines: Colour…",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.clearLines",
+        "title": "Lines: Remove Mark",
+        "category": "File Marks"
+      },
+      {
+        "command": "fileMarks.clearFileLines",
+        "title": "Lines: Remove Every Mark in This File",
+        "category": "File Marks"
+      },
+      {
         "command": "fileMarks.list",
         "title": "List All Marks",
         "category": "File Marks"
@@ -293,6 +308,11 @@
         "id": "fileMarks.submenu",
         "label": "Mark",
         "icon": "$(tag)"
+      },
+      {
+        "id": "fileMarks.lineSubmenu",
+        "label": "Mark Lines",
+        "icon": "$(tag)"
       }
     ],
     "menus": {
@@ -313,6 +333,17 @@
           "submenu": "fileMarks.submenu",
           "group": "2_workspace@100"
         }
+      ],
+      "editor/lineNumber/context": [
+        {
+          "submenu": "fileMarks.lineSubmenu",
+          "group": "2_fileMarks@1"
+        }
+      ],
+      "fileMarks.lineSubmenu": [
+        { "command": "fileMarks.setLineColor", "group": "1_apply@1" },
+        { "command": "fileMarks.clearLines", "group": "2_clear@1" },
+        { "command": "fileMarks.clearFileLines", "group": "2_clear@2" }
       ],
       "fileMarks.submenu": [
         { "command": "fileMarks.applyPreset", "group": "1_apply@1" },
@@ -340,6 +371,13 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "Keep mark colours in front of the colours the Git extension paints on changed files.\n\nVS Code shows the colour of whichever extension registered last, and Git registers after us, so File Marks re-registers itself a moment after startup and whenever a repository opens. Turn this off if you would rather see the git status colour on a file that is also marked."
+        },
+        "fileMarks.lineMarkWidth": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 12,
+          "markdownDescription": "Width in pixels of the stripe a marked line gets beside the line numbers."
         },
         "fileMarks.explorerKeybindings": {
           "type": "boolean",

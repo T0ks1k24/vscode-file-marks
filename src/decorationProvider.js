@@ -55,7 +55,9 @@ class MarkDecorationProvider {
   /** @param {vscode.Uri} uri */
   provideFileDecoration(uri) {
     const mark = this.store.get(uri);
-    if (!mark) return undefined;
+    // A file whose only marks are on lines inside it gets nothing on its name:
+    // an empty decoration would still claim the badge and the colour.
+    if (!mark || (!mark.color && !mark.tag && !mark.description)) return undefined;
 
     const { showTagInTooltip, propagate } = this._options;
 

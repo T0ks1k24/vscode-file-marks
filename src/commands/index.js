@@ -3,6 +3,7 @@
 const vscode = require('vscode');
 
 const { registerMarkCommands } = require('./marks');
+const { registerLineCommands } = require('./lines');
 const { registerListCommand } = require('./list');
 const { registerMaintenanceCommands } = require('./maintenance');
 
@@ -26,6 +27,7 @@ function registerCommands(context, store, priority) {
   };
 
   registerMarkCommands(register, store);
+  registerLineCommands(register, store);
   registerListCommand(register, store);
   registerMaintenanceCommands(register, store);
 

@@ -19,6 +19,22 @@ jobs:
           node-version: 20
           cache: npm
 
+      # Merging a version bump is what publishes to the Marketplace, so it should
+      # never ride along in a pull request unnoticed.
+      - name: Say so when the version changed
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --depth=1 origin "$BASE"
+          before="$(git show FETCH_HEAD:package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")"
+          after="$(node -p "require('./package.json').version")"
+          if [ "$before" != "$after" ]; then
+            echo "::warning title=Version bumped::$before -> $after. Merging this publishes $after to the Marketplace and Open VSX."
+          else
+            echo "Version untouched ($after)."
+          fi
+        env:
+          BASE: ${{ github.base_ref }}
+
       - run: npm ci --no-audit --no-fund
 
       - name: Syntax check

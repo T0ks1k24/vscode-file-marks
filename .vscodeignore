@@ -1,9 +1,12 @@
 .vscode/**
+images/**
+!images/icon.png
 .github/**
 node_modules/**
 .gitignore
 .vscodeignore
 PUBLISHING.md
+CONTRIBUTING.md
 jsconfig.json
 **/*.vsix
 **/.DS_Store

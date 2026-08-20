@@ -3,6 +3,21 @@
 All notable changes to File Marks are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0]
+
+### Added
+- **Marked lines.** Select code, right-click the line numbers → **Mark Lines** → **Colour…**, and
+  those lines get a stripe in that colour beside the numbers plus a tick in the overview ruler. The
+  code is not highlighted or recoloured — only the margin is.
+- Marks follow the text as the file is edited: everything below an insertion or deletion moves with
+  it, and a mark on a deleted line goes with the line.
+- Marked lines show up in **List All Marks** as `file.js:42` and open the file on that line.
+- `fileMarks.lineMarkWidth` (`3`) sets how thick the stripe is.
+
+### Changed
+- Removing the mark of a file now keeps the marked lines inside it — losing them to a click aimed at
+  the file name was too easy. **Delete All Marks** still removes everything.
+
 ## [1.1.0]
 
 ### Added

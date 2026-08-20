@@ -4,10 +4,24 @@ const vscode = require('vscode');
 const path = require('path');
 
 const { sanitizeTag, sanitizeDescription } = require('./badge');
-const { COLOR_ID, STORAGE_FILE, LEGACY_STORAGE_DIRS } = require('./constants');
+const { COLOR_ID, MAX_LINE, STORAGE_FILE, LEGACY_STORAGE_DIRS } = require('./constants');
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+
+/**
+ * Line marks are shifted on every keystroke that changes the line count, and
+ * writing the file that often would be silly. Long enough to coalesce typing,
+ * short enough that a crash cannot cost more than the last moment of it.
+ */
+const SAVE_DELAY = 800;
+
+/** @param {string} text */
+function countNewlines(text) {
+  let count = 0;
+  for (let i = 0; i < text.length; i++) if (text.charCodeAt(i) === 10) count++;
+  return count;
+}
 
 /** Keys that would walk the prototype chain instead of being stored as data. */
 const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
@@ -16,11 +30,49 @@ const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 const MAX_KEY_LENGTH = 4096;
 
 /**
+ * @typedef {object} LineMark
+ * @property {string} color theme colour id of the stripe drawn beside the line
+ */
+
+/**
  * @typedef {object} Mark
  * @property {string} [color]       theme colour id
  * @property {string} [tag]         one or two characters, drawn next to the name
  * @property {string} [description] hover text
+ * @property {Record<string, LineMark>} [lines] marked lines, keyed by 1-based number
  */
+
+/**
+ * Line marks live under the file they belong to, keyed by line number as a
+ * string because that is what JSON gives back. A line outside the range any
+ * real file can have is junk, and so is a key that is not a plain integer.
+ *
+ * @param {unknown} raw
+ * @returns {Record<string, LineMark> | undefined}
+ */
+function normalizeLines(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+
+  /** @type {Record<string, LineMark>} */
+  const lines = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (!/^[1-9][0-9]*$/.test(key) || Number(key) > MAX_LINE) continue;
+    if (!value || typeof value !== 'object') continue;
+    if (typeof value.color !== 'string' || !COLOR_ID.test(value.color)) continue;
+    lines[key] = { color: value.color };
+  }
+  return Object.keys(lines).length > 0 ? lines : undefined;
+}
+
+/** Numerically, so the file stays readable and diffs stay small. */
+function serializeLines(lines) {
+  /** @type {Record<string, LineMark>} */
+  const out = {};
+  for (const key of Object.keys(lines).sort((a, b) => Number(a) - Number(b))) {
+    out[key] = { color: lines[key].color };
+  }
+  return out;
+}
 
 /**
  * Turns whatever is in the JSON file into a mark we can trust — the file is
@@ -44,15 +96,19 @@ function normalizeMark(raw) {
   const description = sanitizeDescription(raw.description);
   if (description) mark.description = description;
 
+  const lines = normalizeLines(raw.lines);
+  if (lines) mark.lines = lines;
+
   return Object.keys(mark).length > 0 ? mark : undefined;
 }
 
-/** The three fields that go to disk, in a fixed order and nothing else. */
+/** The fields that go to disk, in a fixed order and nothing else. */
 function serializeMark(mark) {
   const out = {};
   if (mark.color) out.color = mark.color;
   if (mark.tag) out.tag = mark.tag;
   if (mark.description) out.description = mark.description;
+  if (mark.lines) out.lines = serializeLines(mark.lines);
   return out;
 }
 
@@ -77,9 +133,16 @@ class MarkStore {
     this._lastWritten = '';
     /** Writes are chained — concurrent commands can never interleave. */
     this._writes = Promise.resolve();
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    this._saveTimer = undefined;
   }
 
   dispose() {
+    if (this._saveTimer !== undefined) {
+      clearTimeout(this._saveTimer);
+      // Whatever the debounce was still holding goes to disk now.
+      void this.save();
+    }
     this._emitter.dispose();
   }
 
@@ -188,6 +251,15 @@ class MarkStore {
     return 0;
   }
 
+  /** Debounced `save`, for changes that arrive while someone is typing. */
+  saveSoon() {
+    if (this._saveTimer !== undefined) clearTimeout(this._saveTimer);
+    this._saveTimer = setTimeout(() => {
+      this._saveTimer = undefined;
+      void this.save();
+    }, SAVE_DELAY);
+  }
+
   save() {
     this._writes = this._writes.then(
       () => this._write(),
@@ -230,13 +302,133 @@ class MarkStore {
     this._emitter.fire(uris);
   }
 
-  /** @param {readonly vscode.Uri[]} uris */
+  /**
+   * Clears the colour, tag and note of the file itself. Marked lines inside it
+   * are left alone — they are separate work, and losing them to a click aimed at
+   * the file name would be a nasty surprise. `setLines` and **Delete All Marks**
+   * are what remove those.
+   *
+   * @param {readonly vscode.Uri[]} uris
+   */
   async remove(uris) {
     let touched = false;
-    for (const uri of uris) touched = this.marks.delete(this.key(uri)) || touched;
+    for (const uri of uris) {
+      const key = this.key(uri);
+      const mark = this.marks.get(key);
+      if (!mark || (!mark.color && !mark.tag && !mark.description)) continue;
+
+      if (mark.lines) this.marks.set(key, { lines: mark.lines });
+      else this.marks.delete(key);
+      touched = true;
+    }
     if (!touched) return;
     await this.save();
     this._emitter.fire(uris);
+  }
+
+  /**
+   * @param {vscode.Uri} uri
+   * @returns {Record<string, import('./markStore').LineMark> | undefined}
+   */
+  getLines(uri) {
+    const mark = this.marks.get(this.key(uri));
+    return mark && mark.lines;
+  }
+
+  /** Replaces the lines of one file, or drops them when nothing is left. */
+  _setLines(key, mark, lines) {
+    const next = Object.assign({}, mark);
+    if (Object.keys(lines).length > 0) next.lines = lines;
+    else delete next.lines;
+
+    const normalized = normalizeMark(next);
+    if (normalized) this.marks.set(key, normalized);
+    else this.marks.delete(key);
+  }
+
+  /**
+   * Paints or clears whole lines of one file.
+   *
+   * @param {vscode.Uri} uri
+   * @param {readonly number[]} lineNumbers 1-based
+   * @param {string | null} color `null` takes the mark off those lines
+   */
+  async setLines(uri, lineNumbers, color) {
+    const key = this.key(uri);
+    const mark = this.marks.get(key) || {};
+    const lines = Object.assign({}, mark.lines);
+
+    let touched = false;
+    for (const line of lineNumbers) {
+      if (!Number.isInteger(line) || line < 1 || line > MAX_LINE) continue;
+      const at = String(line);
+
+      if (color === null) {
+        if (at in lines) {
+          delete lines[at];
+          touched = true;
+        }
+      } else {
+        if (!lines[at] || lines[at].color !== color) touched = true;
+        lines[at] = { color };
+      }
+    }
+    if (!touched) return;
+
+    this._setLines(key, mark, lines);
+    await this.save();
+    this._emitter.fire([uri]);
+  }
+
+  /**
+   * Keeps line marks attached to the text they were put on while the file is
+   * edited: everything below an edit moves by the lines it added or removed, and
+   * a mark on a line that was replaced away goes with it.
+   *
+   * Called for every document change, so it does nothing at all — and touches no
+   * disk — for a file without line marks. Saving is left to the caller, which
+   * debounces it.
+   *
+   * @param {vscode.Uri} uri
+   * @param {readonly vscode.TextDocumentContentChangeEvent[]} changes
+   * @returns {boolean} true when a mark moved or was lost
+   */
+  shiftLines(uri, changes) {
+    const key = this.key(uri);
+    const mark = this.marks.get(key);
+    if (!mark || !mark.lines) return false;
+
+    let lines = mark.lines;
+    let touched = false;
+
+    for (const change of changes) {
+      const from = change.range.start.line + 1;
+      const to = change.range.end.line + 1;
+      const removed = to - from;
+      const added = countNewlines(change.text);
+      if (removed === 0 && added === 0) continue;
+
+      /** @type {Record<string, import('./markStore').LineMark>} */
+      const next = {};
+      for (const [at, value] of Object.entries(lines)) {
+        const line = Number(at);
+        // The first line of the edit survives it: what was replaced starts
+        // inside it, and whatever is typed ends up on it.
+        if (line <= from) {
+          next[at] = value;
+        } else if (line <= to) {
+          touched = true;
+        } else {
+          next[String(line + added - removed)] = value;
+          touched = true;
+        }
+      }
+      lines = next;
+    }
+
+    if (!touched) return false;
+    this._setLines(key, mark, lines);
+    return true;
   }
 
   /** @param {readonly string[]} keys */
