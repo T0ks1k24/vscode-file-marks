@@ -40,6 +40,9 @@ jobs:
       - name: Syntax check
         run: npm run check
 
+      - name: Test
+        run: npm test
+
       - name: Build the .vsix
         run: npm run package
 

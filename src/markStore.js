@@ -4,7 +4,14 @@ const vscode = require('vscode');
 const path = require('path');
 
 const { sanitizeTag, sanitizeDescription } = require('./badge');
-const { COLOR_ID, MAX_LINE, STORAGE_FILE, LEGACY_STORAGE_DIRS } = require('./constants');
+const {
+  COLOR_ID,
+  MAX_LINE,
+  MAX_KEY_LENGTH,
+  MODE_GLOBAL,
+  STORAGE_FILE,
+  LEGACY_STORAGE_DIRS,
+} = require('./constants');
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -25,9 +32,6 @@ function countNewlines(text) {
 
 /** Keys that would walk the prototype chain instead of being stored as data. */
 const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
-
-/** No real path or uri is this long — anything longer is junk in the file. */
-const MAX_KEY_LENGTH = 4096;
 
 /**
  * @typedef {object} LineMark
@@ -113,14 +117,18 @@ function serializeMark(mark) {
 }
 
 /**
- * Marks live in one JSON file inside the extension's global storage, so they
- * follow the user across every workspace. Nothing else on disk is touched.
+ * Marks live in one JSON file. Where that file is, and how a resource becomes a
+ * key in it, is the storage target — global storage outside every project by
+ * default, or a file inside the workspace when `fileMarks.storage` says so.
+ * Nothing else on disk is touched either way.
  */
 class MarkStore {
-  /** @param {vscode.ExtensionContext} context */
-  constructor(context) {
-    this.dir = context.globalStorageUri;
-    this.file = vscode.Uri.joinPath(this.dir, STORAGE_FILE);
+  /** @param {import('./storage').Target} target */
+  constructor(target) {
+    this.mode = target.mode;
+    this.dir = target.dir;
+    this.file = target.file;
+    this._codec = target.codec;
 
     /** @type {Map<string, Mark>} */
     this.marks = new Map();
@@ -146,14 +154,66 @@ class MarkStore {
     this._emitter.dispose();
   }
 
-  /** @param {vscode.Uri} uri */
+  /**
+   * The key of a resource, or undefined when the active storage cannot hold it —
+   * in workspace mode, anything outside the workspace folder.
+   *
+   * @param {vscode.Uri} uri
+   */
   key(uri) {
-    return uri.scheme === 'file' ? uri.fsPath : uri.toString();
+    return this._codec.key(uri);
+  }
+
+  /**
+   * The resource a stored key names, or undefined when it cannot be resolved.
+   * A key that does not resolve is not necessarily stale, so callers skip it
+   * rather than treating the item as missing.
+   *
+   * @param {string} key
+   */
+  uri(key) {
+    return this._codec.uri(key);
+  }
+
+  /**
+   * The resources a command was invoked on, split into the ones this storage
+   * can hold and the ones it cannot.
+   *
+   * @param {readonly vscode.Uri[]} uris
+   */
+  _split(uris) {
+    /** @type {string[]} */
+    const keys = [];
+    /** @type {vscode.Uri[]} */
+    const outside = [];
+    for (const uri of uris) {
+      const key = this.key(uri);
+      if (key === undefined) outside.push(uri);
+      else keys.push(key);
+    }
+    return { keys, outside };
+  }
+
+  /**
+   * Says why nothing happened. Only ever called from a command the user just
+   * ran — never from the document-change path, which would talk on every
+   * keystroke in an untitled file.
+   *
+   * @param {readonly vscode.Uri[]} outside
+   */
+  _warnOutside(outside) {
+    if (outside.length === 0) return;
+    const first = path.posix.basename(outside[0].path) || outside[0].toString();
+    const what = outside.length === 1 ? first : `${first} and ${outside.length - 1} more`;
+    vscode.window.showWarningMessage(
+      `File Marks: ${what} cannot be marked — workspace storage only covers files inside the workspace.`
+    );
   }
 
   /** @param {vscode.Uri} uri */
   get(uri) {
-    return this.marks.get(this.key(uri));
+    const key = this.key(uri);
+    return key === undefined ? undefined : this.marks.get(key);
   }
 
   entries() {
@@ -181,6 +241,10 @@ class MarkStore {
     if (plain && typeof plain === 'object' && !Array.isArray(plain)) {
       for (const [key, raw] of Object.entries(plain)) {
         if (!key || key.length > MAX_KEY_LENGTH || FORBIDDEN_KEYS.has(key)) continue;
+        // A key the active storage will not resolve is dropped rather than kept
+        // around unusable: in workspace mode that is what keeps an absolute path
+        // or a `../` escape out of a file several people can edit.
+        if (!this._codec.accepts(key)) continue;
         const mark = normalizeMark(raw);
         if (mark) next.set(key, mark);
       }
@@ -205,8 +269,10 @@ class MarkStore {
   }
 
   /**
-   * Watcher callback. Returns true when the file really changed underneath us
-   * (another VS Code window), false for our own writes.
+   * Watcher callback. Returns true when the file really changed underneath us —
+   * another VS Code window, or another person's copy of a shared workspace —
+   * false for our own writes. The change is announced here rather than by the
+   * caller, so both the Explorer decorations and the line stripes follow it.
    */
   async reloadIfChanged() {
     let text;
@@ -223,6 +289,37 @@ class MarkStore {
     } catch (err) {
       return false;
     }
+    this._emitter.fire(undefined);
+    return true;
+  }
+
+  /**
+   * Delete callback. The storage file going away means the marks went with it —
+   * a branch that does not have the file, a sync removing it, someone deleting
+   * it by hand. Keeping them would show colours for a file that no longer says
+   * so, and write the whole lot back on the next save.
+   *
+   * The delete is confirmed against the file system first. An atomic replace —
+   * write a temporary file, rename it over this one — also arrives as a delete,
+   * and throwing everything away because of one would be far worse than a
+   * moment of stale colour. `_lastWritten` is cleared too, so a file that comes
+   * back with exactly its old contents is still seen as a change.
+   *
+   * @returns {Promise<boolean>} true when marks were dropped
+   */
+  async clearIfDeleted() {
+    try {
+      await vscode.workspace.fs.stat(this.file);
+      return false;
+    } catch (err) {
+      // Really gone.
+    }
+
+    this._lastWritten = '';
+    if (this.marks.size === 0) return false;
+
+    this._adopt(undefined);
+    this._emitter.fire(undefined);
     return true;
   }
 
@@ -232,6 +329,9 @@ class MarkStore {
    * Runs only when we have nothing of our own.
    */
   async migrateLegacyStorage() {
+    // Global storage only: the probe below walks out of `this.dir`, which in
+    // workspace mode would mean rummaging around next to someone's project.
+    if (this.mode !== MODE_GLOBAL) return 0;
     if (this.marks.size > 0) return 0;
 
     for (const folder of LEGACY_STORAGE_DIRS) {
@@ -285,8 +385,11 @@ class MarkStore {
    *        `null` (or an empty string) removes the field.
    */
   async update(uris, patch) {
-    for (const uri of uris) {
-      const key = this.key(uri);
+    const { keys, outside } = this._split(uris);
+    this._warnOutside(outside);
+    if (keys.length === 0) return;
+
+    for (const key of keys) {
       const raw = Object.assign({}, serializeMark(this.marks.get(key) || {}));
 
       for (const [field, value] of Object.entries(patch)) {
@@ -311,9 +414,11 @@ class MarkStore {
    * @param {readonly vscode.Uri[]} uris
    */
   async remove(uris) {
+    const { keys, outside } = this._split(uris);
+    this._warnOutside(outside);
+
     let touched = false;
-    for (const uri of uris) {
-      const key = this.key(uri);
+    for (const key of keys) {
       const mark = this.marks.get(key);
       if (!mark || (!mark.color && !mark.tag && !mark.description)) continue;
 
@@ -331,7 +436,8 @@ class MarkStore {
    * @returns {Record<string, import('./markStore').LineMark> | undefined}
    */
   getLines(uri) {
-    const mark = this.marks.get(this.key(uri));
+    const key = this.key(uri);
+    const mark = key === undefined ? undefined : this.marks.get(key);
     return mark && mark.lines;
   }
 
@@ -355,6 +461,10 @@ class MarkStore {
    */
   async setLines(uri, lineNumbers, color) {
     const key = this.key(uri);
+    if (key === undefined) {
+      this._warnOutside([uri]);
+      return;
+    }
     const mark = this.marks.get(key) || {};
     const lines = Object.assign({}, mark.lines);
 
@@ -395,6 +505,7 @@ class MarkStore {
    */
   shiftLines(uri, changes) {
     const key = this.key(uri);
+    if (key === undefined) return false;
     const mark = this.marks.get(key);
     if (!mark || !mark.lines) return false;
 
@@ -454,23 +565,24 @@ class MarkStore {
    */
   renameInMemory(oldUri, newUri) {
     const from = this.key(oldUri);
+    if (from === undefined) return false;
+
+    // Undefined means the item left this storage altogether — moved out of the
+    // workspace in workspace mode. Its marks go with it: leaving them behind
+    // would paint whatever turns up at the old path next.
     const to = this.key(newUri);
     if (from === to) return false;
 
-    // Local keys are file system paths, everything else is a uri string.
-    const prefix = from + (oldUri.scheme === 'file' ? path.sep : '/');
+    const prefix = from + this._codec.childSeparator(oldUri);
     let touched = false;
 
     for (const [key, mark] of [...this.marks]) {
-      if (key === from) {
-        this.marks.delete(key);
-        this.marks.set(to, mark);
-        touched = true;
-      } else if (key.startsWith(prefix)) {
-        this.marks.delete(key);
-        this.marks.set(to + key.slice(from.length), mark);
-        touched = true;
-      }
+      const moved = key === from ? '' : key.startsWith(prefix) ? key.slice(from.length) : undefined;
+      if (moved === undefined) continue;
+
+      this.marks.delete(key);
+      if (to !== undefined) this.marks.set(to + moved, mark);
+      touched = true;
     }
     return touched;
   }

@@ -3,9 +3,11 @@
 const vscode = require('vscode');
 
 /**
- * Storage keys are absolute paths for local files and uri strings for anything
- * else (untitled, remote, virtual file systems). A Windows drive letter is a
- * single character, so requiring two before the colon keeps `C:\...` a path.
+ * Global storage keys are absolute paths for local files and uri strings for
+ * anything else (untitled, remote, virtual file systems). A Windows drive
+ * letter is a single character, so requiring two before the colon keeps
+ * `C:\...` a path. Workspace storage keys are relative and have their own
+ * codec in `workspaceKeys.js`.
  */
 const URI_KEY = /^[a-z][a-z0-9+.-]+:/i;
 

@@ -3,6 +3,7 @@ images/**
 !images/icon.png
 .github/**
 node_modules/**
+test/**
 .gitignore
 .vscodeignore
 PUBLISHING.md

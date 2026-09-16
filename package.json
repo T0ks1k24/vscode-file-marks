@@ -49,7 +49,7 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": true,
-      "description": "Marks are stored in the extension's own global storage and never execute workspace code."
+      "description": "Marks are a colour, a tag and a note. Nothing is executed, and every value read from a storage file is validated before it is used."
     },
     "virtualWorkspaces": true
   },
@@ -58,7 +58,8 @@
     "onStartupFinished"
   ],
   "scripts": {
-    "check": "for f in extension.js src/*.js src/commands/*.js; do node --check \"$f\" || exit 1; done",
+    "check": "for f in extension.js src/*.js src/commands/*.js test/*.js; do node --check \"$f\" || exit 1; done",
+    "test": "node --test test/*.test.js",
     "package": "vsce package --out file-marks-explorer.vsix",
     "publish:marketplace": "vsce publish --packagePath file-marks-explorer.vsix",
     "publish:openvsx": "ovsx publish file-marks-explorer.vsix"
@@ -357,6 +358,17 @@
     "configuration": {
       "title": "File Marks",
       "properties": {
+        "fileMarks.storage": {
+          "type": "string",
+          "default": "global",
+          "enum": ["global", "workspace"],
+          "enumDescriptions": [
+            "In your VS Code profile. Marks follow you into every project and nothing is written into them.",
+            "In .vscode/file-marks.json inside the workspace, so everyone who opens the folder sees the same marks."
+          ],
+          "markdownDescription": "Where marks are kept.\n\n`global` is your own private set, stored in your VS Code profile — the default, and nothing is written into your projects.\n\n`workspace` writes them to `.vscode/file-marks.json` **inside the workspace**, using paths relative to it, so a folder shared through git, a network share or a sync client such as OneDrive carries the marks to everyone who opens it. That file is part of your project and can be committed — add it to `.gitignore` if you would rather it was not.\n\nOnly single-folder workspaces can do this: a multi-root workspace, or a window with no folder open, has nothing unambiguous to be relative to and keeps using `global`. Changing this setting takes effect when the window is reloaded, and copies nothing from one store to the other.",
+          "scope": "window"
+        },
         "fileMarks.propagateToParents": {
           "type": "boolean",
           "default": false,
