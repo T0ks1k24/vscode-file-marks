@@ -12,6 +12,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - A storage file changed outside the editor now refreshes the marked lines as well as the Explorer, instead of only the Explorer.
 
+### Fixed
+- Deleting a marked file or folder in VS Code now takes its mark with it. The mark used to stay behind, so a file created later at the same path inherited a colour, a tag and a note from whatever used to be there — folders that come round again under the same name, like a per-year or per-client directory, picked up the previous one's state. Marks inside a deleted folder go too, and undoing the delete puts them all back.
+
+Deletions made outside the editor are still not seen; **Remove Marks of Missing Files** remains the way to clear those.
+
 ## [1.2.0]
 
 ### Added
