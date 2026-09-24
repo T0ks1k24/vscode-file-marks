@@ -2,7 +2,7 @@
   "name": "file-marks-explorer",
   "displayName": "File Marks Explorer",
   "description": "Mark files and folders in the Explorer with a colour, a badge and a hover note. Stored globally, so it works in every project.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "T0ks1k24",
   "author": {
     "name": "T0ks1k24"

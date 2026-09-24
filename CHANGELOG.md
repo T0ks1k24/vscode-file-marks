@@ -3,7 +3,7 @@
 All notable changes to File Marks are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.2.1]
 
 ### Added
 - **`fileMarks.storage`.** Left at `global` nothing changes: marks stay in your VS Code profile, keyed by absolute path, and no project is written into. Set to `workspace` and they go to `.vscode/file-marks.json` inside the workspace instead, keyed relative to it, so everyone who opens that folder — shared through git, a network drive or a sync client such as OneDrive — sees the same marks, wherever they keep it. Colours, tags, notes and marked lines all follow the setting, and a change made by someone else shows up as soon as the file reaches you.
