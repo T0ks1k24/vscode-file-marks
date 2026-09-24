@@ -2,8 +2,6 @@
 
 const vscode = require('vscode');
 
-const { keyToUri } = require('../keys');
-
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
 
@@ -31,10 +29,11 @@ function registerMaintenanceCommands(register, store) {
   register('fileMarks.prune', async () => {
     const stale = [];
     for (const [key] of store.entries()) {
-      const uri = keyToUri(key);
+      const uri = store.uri(key);
       // Only file systems we can actually reach right now; a disconnected
-      // remote must never look like a deleted file.
-      if (uri.scheme !== 'file') continue;
+      // remote — or a key this storage cannot place — must never look like a
+      // deleted file.
+      if (!uri || uri.scheme !== 'file') continue;
       try {
         await vscode.workspace.fs.stat(uri);
       } catch (err) {
@@ -101,8 +100,19 @@ function registerMaintenanceCommands(register, store) {
     if (!mode) return;
 
     const next = mode.merge ? Object.assign(store.toPlainObject(), incoming) : incoming;
+    const expected = Object.keys(next).length;
     await store.replaceAll(next);
-    vscode.window.showInformationMessage(`File Marks: ${store.size} mark(s) now.`);
+
+    // An entry can be left out either because the mark itself is not something
+    // we recognise or because the active storage cannot key it — a file from
+    // another machine imported into workspace storage, say. The count is worth
+    // reporting; guessing which of the two it was is not.
+    const dropped = expected - store.size;
+    vscode.window.showInformationMessage(
+      dropped > 0
+        ? `File Marks: ${store.size} mark(s) now — ${dropped} skipped that this storage cannot hold.`
+        : `File Marks: ${store.size} mark(s) now.`
+    );
   });
 
   register('fileMarks.openStorage', async () => {

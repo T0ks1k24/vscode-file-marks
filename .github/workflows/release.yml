@@ -50,6 +50,10 @@ jobs:
         if: steps.version.outputs.release == 'true'
         run: npm run check
 
+      - name: Test
+        if: steps.version.outputs.release == 'true'
+        run: npm test
+
       - name: Build the .vsix
         if: steps.version.outputs.release == 'true'
         run: npm run package

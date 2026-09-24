@@ -3,17 +3,19 @@
 const vscode = require('vscode');
 const path = require('path');
 
-const { keyToUri } = require('../keys');
-
 /** Ideographic space — keeps untagged rows aligned with tagged ones. */
 const PAD = '　';
 
 /**
  * Opens a file, reveals a folder, and says so when the item is gone.
- * @param {vscode.Uri} uri
+ * @param {vscode.Uri | undefined} uri
  * @param {number} [line] 1-based, for a marked line rather than a whole file
  */
 async function openMark(uri, line) {
+  if (!uri) {
+    vscode.window.showWarningMessage('File Marks: that mark is not part of this workspace.');
+    return;
+  }
   try {
     const stat = await vscode.workspace.fs.stat(uri);
     if (stat.type & vscode.FileType.Directory) {
@@ -47,22 +49,27 @@ function registerListCommand(register, store) {
 
     const items = [];
     for (const [key, mark] of entries) {
+      const target = store.uri(key);
+      // `Uri.path` is always `/`-separated, so it beats reading the key itself:
+      // a Windows key is a windows path, and the workspace root's key is `.`.
+      const name = target ? path.posix.basename(target.path) : path.basename(key);
+
       if (mark.color || mark.tag || mark.description) {
         items.push({
           // The full tag, not the two-character badge the Explorer is limited to.
-          label: `${mark.tag || PAD}  ${path.basename(key)}`,
+          label: `${mark.tag || PAD}  ${name}`,
           description: mark.description || '',
           detail: key,
-          target: keyToUri(key),
+          target,
         });
       }
 
       for (const [at, line] of Object.entries(mark.lines || {})) {
         items.push({
-          label: `${PAD}  ${path.basename(key)}:${at}`,
+          label: `${PAD}  ${name}:${at}`,
           description: line.color.replace('fileMarks.', ''),
           detail: key,
-          target: keyToUri(key),
+          target,
           line: Number(at),
         });
       }
