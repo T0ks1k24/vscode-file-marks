@@ -14,17 +14,21 @@ the extension loaded. Two launch configurations are offered —
 
 ```bash
 npm run check      # syntax check, the same one CI runs
+npm test           # node --test, no dependencies
 npm run package    # build file-marks-explorer.vsix
 ```
 
-Every pull request gets a CI run that does both and uploads the `.vsix` as an artifact, so a
-reviewer can install the change without building it.
+Every pull request gets a CI run that does all three and uploads the `.vsix` as an artifact, so a reviewer can install the change without building it.
+
+The tests cover `workspaceKeys.js` and nothing else, on purpose: it is the one piece with no `vscode` import, so it can be tested without faking `Uri`, the file system and the watcher — which is precisely the platform-specific behaviour a fake would get wrong. Everything else is checked by pressing `F5`.
 
 ## Where things are
 
 | | |
 |---|---|
 | [src/markStore.js](src/markStore.js) | the one JSON file everything is kept in, and everything that guards it |
+| [src/storage.js](src/storage.js) | which file that is, and how a resource becomes a key in it |
+| [src/workspaceKeys.js](src/workspaceKeys.js) | workspace-relative keys — pure string work, and the only thing with tests |
 | [src/decorationProvider.js](src/decorationProvider.js) | what the Explorer draws on a file name |
 | [src/lineDecorations.js](src/lineDecorations.js) | the stripe beside the line numbers |
 | [src/decorationPriority.js](src/decorationPriority.js) | staying in front of the git colours |

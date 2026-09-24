@@ -40,7 +40,22 @@ const MAX_LINE = 2000000;
 /** Hover notes are trimmed to this, so a broken file cannot produce a huge tooltip. */
 const MAX_DESCRIPTION_LENGTH = 500;
 
+/** No real path or uri is this long — anything longer is junk in the file. */
+const MAX_KEY_LENGTH = 4096;
+
+/** The two values of `fileMarks.storage`. */
+const MODE_GLOBAL = 'global';
+const MODE_WORKSPACE = 'workspace';
+
+/** Global storage: one file in the extension's own folder, outside every project. */
 const STORAGE_FILE = 'marks.json';
+
+/**
+ * Workspace storage: a file inside the workspace itself, so whatever shares the
+ * folder — git, a network share, a sync client — shares the marks with it.
+ */
+const WORKSPACE_STORAGE_DIR = '.vscode';
+const WORKSPACE_STORAGE_FILE = 'file-marks.json';
 
 /** Global storage folder used before the extension got a real publisher id. */
 const LEGACY_STORAGE_DIRS = ['local.file-marks'];
@@ -51,6 +66,11 @@ module.exports = {
   MAX_LINE,
   BADGE_SUGGESTIONS,
   MAX_DESCRIPTION_LENGTH,
+  MAX_KEY_LENGTH,
+  MODE_GLOBAL,
+  MODE_WORKSPACE,
   STORAGE_FILE,
+  WORKSPACE_STORAGE_DIR,
+  WORKSPACE_STORAGE_FILE,
   LEGACY_STORAGE_DIRS,
 };

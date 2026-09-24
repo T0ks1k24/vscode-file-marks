@@ -13,7 +13,7 @@ tag and a note. Marks are stored globally, so they follow you into every project
 ## Why
 
 - Find the files you actually work in, in a tree full of everything else.
-- No config files in your repo, nothing committed by accident.
+- No config files in your repo, nothing committed by accident — unless you ask for it, and then a whole team can share one set of marks.
 - Works on a multi-selection, on folders, and on remote / WSL / container workspaces.
 - No runtime dependencies, no network access, no telemetry.
 
@@ -77,6 +77,28 @@ stripes a few lines off.
 Clearing the mark of a *file* leaves the lines inside it alone; they are separate work. **Delete All
 Marks** removes both.
 
+## Where marks are stored
+
+By default they are yours alone: one JSON file in your VS Code profile, nothing written into any project. That is `fileMarks.storage` left at `global`, and it is what the rest of this page describes.
+
+Set it to `workspace` and the same marks go into the workspace instead:
+
+```jsonc
+// .vscode/settings.json
+"fileMarks.storage": "workspace"
+```
+
+Marks then live in `.vscode/file-marks.json`, stored as paths relative to the workspace — `Workpapers/Cash.xlsx`, never `C:\Users\you\...` — so **everyone who opens that folder sees the same marks**, wherever they keep it. Share the folder however you already do: commit it, put it on a network drive, sync it with OneDrive, Dropbox or SharePoint. A colour someone else applies shows up in your Explorer as soon as the file reaches you; no reload, and marked lines follow too.
+
+It is an opt-in second mode, not a better default. Worth knowing before you turn it on:
+
+- **The file is part of your project.** It can be committed like any other file under `.vscode/`. Add `.vscode/file-marks.json` to `.gitignore` if you would rather it was not, and remember the setting itself is shareable — putting it in the workspace's own `settings.json` is how you hand the mode to a whole team.
+- **Only files inside the workspace can be marked.** A file from somewhere else on disk, or an untitled editor, has no portable name inside this workspace, and its absolute path is exactly what must not end up in a file other people read. Marking one says so and writes nothing. Global mode has no such limit.
+- **Only single-folder workspaces.** A multi-root workspace has no single folder to be relative to, so it keeps using global storage. So does a window with no folder open.
+- **The last writer wins.** Two people marking things at the same time, on copies that have not yet synchronized, both write the whole file, and your sync client picks a winner — or leaves you a `file-marks (1).json` beside it. It is fine for ordinary use, where marks are made minutes apart and each person works in their own corner. It is not a merge, and nothing here can make a sync client merge.
+- **Your global marks stay where they are.** Switching modes copies nothing in either direction, so nothing is lost by trying it. VS Code needs a window reload to pick the change up, and offers one.
+- **Untrusted and virtual workspaces.** Marks are only a colour, a tag and a note; nothing in the file is executed, and every value read from it is checked, including the paths — a key that points outside the workspace is dropped. On a read-only file system the write fails and says so.
+
 ## Keybindings
 
 One press. They act on the file open in the editor, and on the Explorer selection while the
@@ -123,6 +145,7 @@ With no `args` at all the key opens the preset picker.
 
 | Setting | Default | What it does |
 |---|---|---|
+| `fileMarks.storage` | `global` | `workspace` keeps marks in `.vscode/file-marks.json` instead, to share them — see [above](#where-marks-are-stored) |
 | `fileMarks.presets` | 8 presets | the ready-made marks in **Quick Preset…** — replace them with your own |
 | `fileMarks.badgeSuggestions` | `[]` | the tags offered in the picker; empty keeps the built-in emoji |
 | `fileMarks.propagateToParents` | `false` | colour a folder when something inside it is marked |
@@ -169,8 +192,7 @@ file open in the editor, leaving the clipboard alone. The context menu never nee
 
 **Renames and deletions** made inside VS Code take the mark with them, folders included: a renamed file keeps its colour, and a deleted one gives it up, so a new file created later at that path does not inherit a colour and a note from whatever used to be there. Undoing a delete brings the marks back. Changes made outside the editor are not seen — use **File Marks: Remove Marks of Missing Files** to clean up after those.
 
-**Backup.** *Export / Import Marks* moves everything to another machine. Marks live in one JSON
-file in the extension's global storage; nothing is written into your projects.
+**Backup.** *Export / Import Marks* moves everything to another machine, and **File Marks: Open the Marks Storage File** opens whichever file is in use. By default that is one JSON file in the extension's global storage and nothing is written into your projects; see [Where marks are stored](#where-marks-are-stored) for the mode that puts it in the workspace instead.
 
 ## Contributing
 

@@ -7,47 +7,76 @@ const { MarkDecorationProvider } = require('./decorationProvider');
 const { LineDecorations } = require('./lineDecorations');
 const { DecorationPriority } = require('./decorationPriority');
 const { registerCommands } = require('./commands');
-const { STORAGE_FILE } = require('./constants');
+const { resolveTarget } = require('./storage');
 
 /** Milliseconds to let the Git extension finish its initial repository scan. */
 const GIT_SETTLE_DELAY = 1500;
 
 /**
- * Keeps the marks of several VS Code windows in sync by watching the shared
- * storage file. Our own writes are recognised by content and ignored.
+ * Keeps marks in step with whoever else is writing the storage file — another
+ * VS Code window, or another person's copy of a shared workspace. Our own
+ * writes are recognised by content and ignored, and the store announces a real
+ * change itself, so both the Explorer and the line stripes follow it.
  *
  * @param {vscode.ExtensionContext} context
  * @param {MarkStore} store
- * @param {MarkDecorationProvider} provider
+ * @param {import('./storage').Target} target
  */
-async function watchStorage(context, store, provider) {
+async function watchStorage(context, store, target) {
   try {
-    await vscode.workspace.fs.createDirectory(store.dir);
+    // Global storage is a folder of ours and may not exist yet. The workspace
+    // file is watched through the folder that holds it, which is already being
+    // watched recursively, so nothing has to be created to see it appear.
+    if (target.createDir) await vscode.workspace.fs.createDirectory(target.dir);
 
     const watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(store.dir, STORAGE_FILE)
+      new vscode.RelativePattern(target.watchBase, target.watchPattern)
     );
-    const reload = async () => {
-      if (await store.reloadIfChanged()) provider.refresh(undefined);
-    };
+    const reload = () => void store.reloadIfChanged();
 
     context.subscriptions.push(
       watcher,
       watcher.onDidChange(reload),
       watcher.onDidCreate(reload),
-      watcher.onDidDelete(reload)
+      // A delete is not a change to read — there is nothing to read — so it has
+      // its own handler, which drops the marks the file was holding.
+      watcher.onDidDelete(() => void store.clearIfDeleted())
     );
   } catch (err) {
     // Not fatal — marks still work, they just will not sync live between windows.
   }
 }
 
+/**
+ * The storage mode is resolved once, at activation: a live swap would have to
+ * drain the debounced saves, the queued writes and the watcher callbacks of the
+ * store it is replacing, which is a great deal of machinery for something
+ * nobody changes twice. Neither store is touched, so nothing is lost by
+ * waiting — and nothing is copied between them either.
+ *
+ * @param {vscode.ExtensionContext} context
+ * @param {import('./storage').Target} active
+ */
+async function offerReload(context, active) {
+  if (resolveTarget(context).file.toString() === active.file.toString()) return;
+
+  const answer = await vscode.window.showInformationMessage(
+    'File Marks: marks are now stored somewhere else. Reload the window to use it.',
+    'Reload Window'
+  );
+  if (answer === 'Reload Window') {
+    await vscode.commands.executeCommand('workbench.action.reloadWindow');
+  }
+}
+
 /** @param {vscode.ExtensionContext} context */
 async function activate(context) {
-  const store = new MarkStore(context);
+  const target = resolveTarget(context);
+  const store = new MarkStore(target);
   context.subscriptions.push(store);
 
   await store.load();
+  // Global storage only; it returns immediately in workspace mode.
   await store.migrateLegacyStorage();
 
   const provider = new MarkDecorationProvider(store);
@@ -70,7 +99,7 @@ async function activate(context) {
   priority.reassert(GIT_SETTLE_DELAY);
   void priority.watchGit();
 
-  void watchStorage(context, store, provider);
+  void watchStorage(context, store, target);
 
   // Marked lines are drawn per editor, so a newly opened or moved one needs
   // painting, and every edit can move the marks of the file being typed in.
@@ -103,9 +132,16 @@ async function activate(context) {
     })
   );
 
+  // Workspace storage is relative to the one folder of a single-folder
+  // workspace, so opening a second one moves the marks elsewhere too.
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(() => void offerReload(context, target))
+  );
+
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (!event.affectsConfiguration('fileMarks')) return;
+      if (event.affectsConfiguration('fileMarks.storage')) void offerReload(context, target);
       provider.reloadOptions();
       provider.refresh(undefined);
       lines.reloadOptions();
